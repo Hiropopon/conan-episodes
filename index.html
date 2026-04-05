@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>名探偵コナン アニメエピソード一覧</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f5f5f5; color: #333; }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px 24px;
+    }
+    header h1 { font-size: 1.4rem; }
+
+    .controls {
+      background: #fff;
+      padding: 16px 24px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls input, .controls select {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .controls input[type="text"] { width: 280px; }
+    .count {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      padding: 16px 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+    }
+    tr:hover td { background: #f0f4ff; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    .badge-manga  { background: #dbeafe; color: #1d4ed8; }
+    .badge-anime  { background: #fef9c3; color: #854d0e; }
+    .badge-org    { background: #fee2e2; color: #991b1b; }
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    .stars { color: #f59e0b; letter-spacing: -1px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>名探偵コナン アニメエピソード一覧</h1>
+</header>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="タイトルで検索...">
+  <select id="filterSeason">
+    <option value="">シーズン（すべて）</option>
+  </select>
+  <select id="filterType">
+    <option value="">原作/オリジナル（すべて）</option>
+    <option value="原作">原作</option>
+    <option value="アニメオリジナル">アニメオリジナル</option>
+  </select>
+  <select id="filterOrg">
+    <option value="">黒の組織関連（すべて）</option>
+    <option value="○">○ あり</option>
+    <option value="×">× なし</option>
+  </select>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>シーズン</th>
+        <th>タイトル</th>
+        <th>原作/オリジナル</th>
+        <th>黒の組織</th>
+        <th>ストーリー関連</th>
+        <th>おすすめ度</th>
+        <th>注記</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="no-results" id="noResults" style="display:none">該当するエピソードがありません</div>
+</div>
+
+<script>
+let allEpisodes = [];
+
+async function loadCSV() {
+  const res = await fetch('conan_episodes.csv');
+  const text = await res.text();
+  const lines = text.trim().split('\n');
+  allEpisodes = lines.slice(1).map(line => {
+    const cols = parseCSVLine(line);
+    return {
+      num:    cols[0] || '',
+      season: cols[1] || '',
+      title:  cols[2] || '',
+      type:   cols[3] || '',
+      org:    cols[4] || '',
+      story:  cols[5] || '',
+      rec:    cols[6] || '',
+      note:   cols[7] || '',
+    };
+  });
+
+  // populate season filter
+  const seasons = [...new Set(allEpisodes.map(e => e.season))]
+    .filter(Boolean)
+    .sort((a, b) => Number(a) - Number(b));
+  const sel = document.getElementById('filterSeason');
+  seasons.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = 'シーズン ' + s;
+    sel.appendChild(opt);
+  });
+
+  render();
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQuote = !inQuote; }
+    else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function stars(n) {
+  const val = Number(n);
+  if (!val) return '';
+  return '<span class="stars">' + '★'.repeat(Math.min(val, 5)) + '</span>';
+}
+
+function render() {
+  const search = document.getElementById('search').value.trim().toLowerCase();
+  const season = document.getElementById('filterSeason').value;
+  const type   = document.getElementById('filterType').value;
+  const org    = document.getElementById('filterOrg').value;
+
+  const filtered = allEpisodes.filter(e => {
+    if (search && !e.title.toLowerCase().includes(search)) return false;
+    if (season && e.season !== season) return false;
+    if (type   && e.type   !== type)   return false;
+    if (org    && e.org    !== org)    return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  filtered.forEach(e => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${e.num}</td>
+      <td>${e.season}</td>
+      <td>${e.title}</td>
+      <td><span class="badge ${e.type === '原作' ? 'badge-manga' : 'badge-anime'}">${e.type}</span></td>
+      <td>${e.org === '○' ? '<span class="badge badge-org">○</span>' : e.org}</td>
+      <td>${stars(e.story)}</td>
+      <td>${stars(e.rec)}</td>
+      <td>${e.note}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('count').textContent = `${filtered.length} / ${allEpisodes.length} 件`;
+  document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filterSeason').addEventListener('change', render);
+document.getElementById('filterType').addEventListener('change', render);
+document.getElementById('filterOrg').addEventListener('change', render);
+
+loadCSV();
+</script>
+</body>
+</html>
