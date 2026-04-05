@@ -128,13 +128,6 @@
     <option value="アニメオリジナル">アニメオリジナル</option>
   </select>
 
-  <!-- 黒の組織関連 絞り込み -->
-  <select id="filterOrg">
-    <option value="">黒の組織関連（すべて）</option>
-    <option value="○">○ あり</option>
-    <option value="×">× なし</option>
-  </select>
-
   <!-- フィルター後の件数表示 -->
   <span class="count" id="count"></span>
 </div>
@@ -149,9 +142,9 @@
         <th>シーズン</th>
         <th>タイトル</th>
         <th>原作/オリジナル</th>
-        <th>黒の組織</th>
         <th class="sortable" data-key="story">ストーリー関連</th>
         <th class="sortable" data-key="rec">おすすめ度</th>
+        <th>関連タグ</th>
         <th>注記</th>
       </tr>
     </thead>
@@ -186,9 +179,9 @@ async function loadCSV() {
       season: cols[1] || '', // シーズン番号
       title:  cols[2] || '', // タイトル
       type:   cols[3] || '', // 原作 / アニメオリジナル
-      org:    cols[4] || '', // 黒の組織関連（○/×）
       story:  cols[5] || '', // ストーリー関連度（数値）
       rec:    cols[6] || '', // おすすめ度（数値）
+      tag:    cols[8] || '', // 関連タグ（CSVに追加予定）
       note:   cols[7] || '', // 注記
     };
   });
@@ -251,7 +244,6 @@ function render() {
     if (search && !e.title.toLowerCase().includes(search)) return false;
     if (season && e.season !== season) return false;
     if (type   && e.type   !== type)   return false;
-    if (org    && e.org    !== org)    return false;
     return true;
   });
 
@@ -281,9 +273,9 @@ function render() {
       <td>${e.season}</td>
       <td>${e.title}</td>
       <td><span class="badge ${e.type === '原作' ? 'badge-manga' : 'badge-anime'}">${e.type}</span></td>
-      <td>${e.org === '○' ? '<span class="badge badge-org">○</span>' : e.org}</td>
       <td>${stars(e.story)}</td>
       <td>${stars(e.rec)}</td>
+      <td>${e.tag}</td>
       <td>${e.note}</td>
     `;
     tbody.appendChild(tr);
@@ -302,7 +294,6 @@ function render() {
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filterSeason').addEventListener('change', render);
 document.getElementById('filterType').addEventListener('change', render);
-document.getElementById('filterOrg').addEventListener('change', render);
 
 // ソート可能な列ヘッダーのクリックでソートを切り替える
 // 同じ列を再クリック → 昇順/降順を反転
