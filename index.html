@@ -4,189 +4,302 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>名探偵コナン アニメエピソード一覧</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* ===== リセット & ベーススタイル ===== */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #f5f5f5; color: #333; }
-
-    /* ===== ページ上部のタイトルバー ===== */
-    header {
-      background: #1a1a2e;
-      color: #fff;
-      padding: 20px 24px;
+    /* ===== CSS変数 ===== */
+    :root {
+      --red:    #c0001a;
+      --dark:   #0d0d0d;
+      --black:  #111;
+      --gold:   #d4a017;
+      --glass:  rgba(10, 10, 20, 0.72);
+      --glass-border: rgba(255,255,255,0.08);
+      --text:   #f0f0f0;
+      --muted:  #aaa;
     }
-    header h1 { font-size: 1.4rem; }
+
+    /* ===== リセット ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== 背景 ===== */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background: var(--dark);
+      position: relative;
+    }
+    /* 背景画像オーバーレイ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: url('back.JPG') center/cover no-repeat;
+      opacity: 0.18;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ===== ヘッダー ===== */
+    header {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-height: 260px;
+      overflow: hidden;
+      border-bottom: 3px solid var(--red);
+    }
+    header img.header-img {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      filter: brightness(0.7);
+    }
+    /* ヘッダー上のタイトルテキスト */
+    .header-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 28px;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 40%, transparent);
+    }
+    .header-overlay h1 {
+      font-family: 'Noto Serif JP', serif;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    }
+    .header-overlay .subtitle {
+      font-size: 0.8rem;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+    /* 赤いアクセントライン */
+    .header-overlay::after {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      background: var(--red);
+      margin-top: 10px;
+      border-radius: 2px;
+    }
+
+    /* ===== コンテンツ全体 ===== */
+    .content {
+      position: relative;
+      z-index: 1;
+    }
 
     /* ===== 検索・フィルターエリア ===== */
     .controls {
-      background: #fff;
-      padding: 16px 24px;
-      border-bottom: 1px solid #ddd;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 14px 24px;
       display: flex;
-      flex-wrap: wrap;   /* 画面幅が狭い場合に折り返す */
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
       align-items: center;
     }
-    .controls input, .controls select {
-      padding: 8px 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9rem;
+    .controls input,
+    .controls select {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
     }
-    .controls input[type="text"] { width: 280px; }
-
-    /* 件数表示（右端に寄せる） */
+    .controls input::placeholder { color: var(--muted); }
+    .controls input[type="text"] { width: 240px; }
+    .controls input:focus,
+    .controls select:focus {
+      border-color: var(--red);
+      background: rgba(255,255,255,0.11);
+    }
+    .controls select option { background: #1a1a2a; color: var(--text); }
     .count {
       margin-left: auto;
-      font-size: 0.85rem;
-      color: #666;
+      font-size: 0.82rem;
+      color: var(--muted);
       white-space: nowrap;
     }
+    .count span { color: var(--gold); font-weight: 700; }
 
-    /* ===== テーブルエリア（横スクロール対応） ===== */
+    /* ===== テーブルエリア ===== */
     .table-wrap {
       overflow-x: auto;
-      padding: 16px 24px;
+      padding: 20px 20px 40px;
     }
     table {
       width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      font-size: 0.9rem;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      font-size: 0.88rem;
     }
-
-    /* テーブルヘッダー */
+    thead tr {
+      background: transparent;
+    }
     th {
-      background: #1a1a2e;
+      background: rgba(192,0,26,0.85);
       color: #fff;
-      padding: 10px 12px;
+      padding: 11px 14px;
       text-align: left;
       white-space: nowrap;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      font-size: 0.82rem;
     }
-    /* ソート可能な列のヘッダー */
-    th.sortable {
-      cursor: pointer;
-      user-select: none; /* クリック時にテキスト選択されないようにする */
-    }
-    th.sortable:hover { background: #2d2d4e; }
-    /* ソート可能な列には常に ▲▼ を表示 */
-    th.sortable::after       { content: ' ▲▼'; font-size: 0.7rem; opacity: 0.4; }
-    /* ソート中の列は ▲ または ▼ を強調表示 */
-    th.sort-asc::after  { content: ' ▲'; font-size: 0.75rem; opacity: 1; }
-    th.sort-desc::after { content: ' ▼'; font-size: 0.75rem; opacity: 1; }
+    th:first-child { border-radius: 6px 0 0 6px; }
+    th:last-child  { border-radius: 0 6px 6px 0; }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { background: rgba(192,0,26,1); }
+    th.sortable::after      { content: ' ▲▼'; font-size: 0.65rem; opacity: 0.4; }
+    th.sort-asc::after      { content: ' ▲';  font-size: 0.7rem;  opacity: 1; }
+    th.sort-desc::after     { content: ' ▼';  font-size: 0.7rem;  opacity: 1; }
 
-    /* テーブルのデータセル */
+    tbody tr {
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.15s, transform 0.1s;
+    }
+    tbody tr:hover {
+      background: rgba(192,0,26,0.18);
+      transform: translateX(2px);
+    }
     td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #eee;
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text);
     }
-    tr:hover td { background: #f0f4ff; } /* 行ホバー時に背景色変更 */
+    td:first-child {
+      border-radius: 6px 0 0 6px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    td:last-child { border-radius: 0 6px 6px 0; }
 
-    /* ===== バッジ（ラベル表示） ===== */
+    /* ===== バッジ ===== */
     .badge {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
       white-space: nowrap;
+      letter-spacing: 0.02em;
     }
-    .badge-manga  { background: #dbeafe; color: #1d4ed8; } /* 原作：青系 */
-    .badge-anime  { background: #fef9c3; color: #854d0e; } /* アニメオリジナル：黄系 */
-    .badge-org    { background: #fee2e2; color: #991b1b; } /* 黒の組織関連：赤系 */
+    .badge-manga { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-anime { background: rgba(234,179,8,0.15); color: #fde68a; border: 1px solid rgba(234,179,8,0.25); }
+    .badge-org   { background: rgba(192,0,26,0.2);  color: #fca5a5; border: 1px solid rgba(192,0,26,0.3); }
 
-    /* 検索結果が0件のときのメッセージ */
+    /* ===== 星評価 ===== */
+    .stars { color: var(--gold); letter-spacing: -2px; font-size: 0.95rem; }
+
+    /* ===== 0件メッセージ ===== */
     .no-results {
       text-align: center;
-      padding: 40px;
-      color: #999;
+      padding: 60px;
+      color: var(--muted);
+      font-size: 0.95rem;
     }
 
-    /* ★評価の色 */
-    .stars { color: #f59e0b; letter-spacing: -1px; }
+    /* ===== スマホ対応 ===== */
+    @media (max-width: 600px) {
+      .controls { padding: 12px 14px; gap: 8px; }
+      .controls input[type="text"] { width: 100%; }
+      .controls select { flex: 1; min-width: 0; }
+      .count { margin-left: 0; width: 100%; text-align: right; }
+      .table-wrap { padding: 12px 10px 40px; }
+      th, td { padding: 8px 9px; font-size: 0.8rem; }
+      header { max-height: 180px; }
+      header img.header-img { max-height: 180px; }
+    }
   </style>
 </head>
 <body>
 
+<!-- ヘッダー -->
 <header>
-  <h1>名探偵コナン アニメエピソード一覧</h1>
+  <img class="header-img" src="header.JPG" alt="名探偵コナン">
+  <div class="header-overlay">
+    <p class="subtitle">Detective Conan / Episode Guide</p>
+    <h1>名探偵コナン アニメエピソード一覧</h1>
+  </div>
 </header>
 
-<!-- 検索・フィルターコントロール -->
-<div class="controls">
-  <!-- タイトルのテキスト検索 -->
-  <input type="text" id="search" placeholder="タイトルで検索...">
+<div class="content">
+  <!-- 検索・フィルター -->
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 タイトルで検索...">
+    <select id="filterSeason">
+      <option value="">シーズン（すべて）</option>
+    </select>
+    <select id="filterType">
+      <option value="">原作 / オリジナル（すべて）</option>
+      <option value="原作">原作</option>
+      <option value="アニメオリジナル">アニメオリジナル</option>
+    </select>
+    <span class="count" id="count"></span>
+  </div>
 
-  <!-- シーズン絞り込み（選択肢はJSで動的に生成） -->
-  <select id="filterSeason">
-    <option value="">シーズン（すべて）</option>
-  </select>
-
-  <!-- 原作 / アニメオリジナル 絞り込み -->
-  <select id="filterType">
-    <option value="">原作/オリジナル（すべて）</option>
-    <option value="原作">原作</option>
-    <option value="アニメオリジナル">アニメオリジナル</option>
-  </select>
-
-  <!-- フィルター後の件数表示 -->
-  <span class="count" id="count"></span>
-</div>
-
-<!-- エピソード一覧テーブル -->
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <!-- data-key属性でJSのソート対象フィールド名を指定 -->
-        <th class="sortable" data-key="num">#</th>
-        <th>シーズン</th>
-        <th>タイトル</th>
-        <th>原作/オリジナル</th>
-        <th class="sortable" data-key="story">ストーリー関連</th>
-        <th class="sortable" data-key="rec">おすすめ度</th>
-        <th>関連タグ</th>
-        <th>注記</th>
-      </tr>
-    </thead>
-    <!-- 行はJSで動的に生成 -->
-    <tbody id="tbody"></tbody>
-  </table>
-  <!-- 該当エピソードがないときに表示 -->
-  <div class="no-results" id="noResults" style="display:none">該当するエピソードがありません</div>
+  <!-- テーブル -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" data-key="num">#</th>
+          <th>シーズン</th>
+          <th>タイトル</th>
+          <th>原作 / オリジナル</th>
+          <th class="sortable" data-key="story">ストーリー関連</th>
+          <th class="sortable" data-key="rec">おすすめ度</th>
+          <th>関連タグ</th>
+          <th>注記</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="no-results" id="noResults" style="display:none">該当するエピソードがありません</div>
+  </div>
 </div>
 
 <script>
-// 全エピソードデータを保持する配列
 let allEpisodes = [];
-
-// 現在のソート設定（初期値：エピソード番号の昇順）
 let sortKey = 'num';
 let sortDir = 'asc';
 
-// ========================================
-// CSVファイルを読み込み、データを初期化する
-// ========================================
 async function loadCSV() {
   const res = await fetch('conan_episodes.csv');
   const text = await res.text();
   const lines = text.trim().split('\n');
-
-  // 1行目はヘッダーなのでスキップ（slice(1)）
   allEpisodes = lines.slice(1).map(line => {
     const cols = parseCSVLine(line);
     return {
-      num:    cols[0] || '', // エピソード番号
-      season: cols[1] || '', // シーズン番号
-      title:  cols[2] || '', // タイトル
-      type:   cols[3] || '', // 原作 / アニメオリジナル
-      story:  cols[5] || '', // ストーリー関連度（数値）
-      rec:    cols[6] || '', // おすすめ度（数値）
-      tag:    cols[8] || '', // 関連タグ（CSVに追加予定）
-      note:   cols[7] || '', // 注記
+      num:    cols[0] || '',
+      season: cols[1] || '',
+      title:  cols[2] || '',
+      type:   cols[3] || '',
+      story:  cols[5] || '',
+      rec:    cols[6] || '',
+      tag:    cols[8] || '',
+      note:   cols[7] || '',
     };
   });
-
-  // シーズンフィルターの選択肢を動的に生成
   const seasons = [...new Set(allEpisodes.map(e => e.season))]
     .filter(Boolean)
     .sort((a, b) => Number(a) - Number(b));
@@ -197,74 +310,51 @@ async function loadCSV() {
     opt.textContent = 'シーズン ' + s;
     sel.appendChild(opt);
   });
-
   render();
 }
 
-// ========================================
-// CSVの1行をカラム配列に変換する
-// ダブルクォートで囲まれたフィールド内のカンマを正しく処理する
-// ========================================
 function parseCSVLine(line) {
   const result = [];
   let cur = '', inQuote = false;
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
-    if (c === '"') { inQuote = !inQuote; }          // クォートの開始/終了
-    else if (c === ',' && !inQuote) { result.push(cur); cur = ''; } // フィールド区切り
+    if (c === '"') { inQuote = !inQuote; }
+    else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
     else { cur += c; }
   }
-  result.push(cur); // 最後のフィールドを追加
+  result.push(cur);
   return result;
 }
 
-// ========================================
-// 数値を★の数に変換して返す（最大5個）
-// 値が0または空の場合は空文字を返す
-// ========================================
 function stars(n) {
   const val = Number(n);
   if (!val) return '';
   return '<span class="stars">' + '★'.repeat(Math.min(val, 5)) + '</span>';
 }
 
-// ========================================
-// テーブルを再描画する（フィルター・ソート適用）
-// 検索・フィルター変更・ソート変更のたびに呼ばれる
-// ========================================
 function render() {
-  // 現在の検索・フィルター条件を取得
   const search = document.getElementById('search').value.trim().toLowerCase();
   const season = document.getElementById('filterSeason').value;
   const type   = document.getElementById('filterType').value;
-
-  // 条件に合うエピソードだけ抽出
   const filtered = allEpisodes.filter(e => {
     if (search && !e.title.toLowerCase().includes(search)) return false;
     if (season && e.season !== season) return false;
     if (type   && e.type   !== type)   return false;
     return true;
   });
-
-  // 指定されたキーで数値ソート（空値は0として扱う）
   filtered.sort((a, b) => {
     const va = Number(a[sortKey]) || 0;
     const vb = Number(b[sortKey]) || 0;
     return sortDir === 'asc' ? va - vb : vb - va;
   });
-
-  // ソート中の列ヘッダーに ▲/▼ を付ける
   document.querySelectorAll('th.sortable').forEach(th => {
     th.classList.remove('sort-asc', 'sort-desc');
     if (th.dataset.key === sortKey) {
       th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
     }
   });
-
-  // テーブルの行を再生成
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-
   filtered.forEach(e => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -279,24 +369,14 @@ function render() {
     `;
     tbody.appendChild(tr);
   });
-
-  // 件数表示を更新
-  document.getElementById('count').textContent = `${filtered.length} / ${allEpisodes.length} 件`;
+  const countEl = document.getElementById('count');
+  countEl.innerHTML = `<span>${filtered.length}</span> / ${allEpisodes.length} 件`;
   document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
 }
 
-// ========================================
-// イベントリスナーの登録
-// ========================================
-
-// 検索・フィルター変更時に再描画
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filterSeason').addEventListener('change', render);
 document.getElementById('filterType').addEventListener('change', render);
-
-// ソート可能な列ヘッダーのクリックでソートを切り替える
-// 同じ列を再クリック → 昇順/降順を反転
-// 別の列をクリック  → その列の昇順でソート
 document.querySelectorAll('th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.key;
@@ -310,7 +390,6 @@ document.querySelectorAll('th.sortable').forEach(th => {
   });
 });
 
-// ページ読み込み時にCSVを取得してテーブルを表示
 loadCSV();
 </script>
 </body>
