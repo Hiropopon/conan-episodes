@@ -142,7 +142,9 @@
     /* ===== テーブルエリア ===== */
     .table-wrap {
       overflow-x: auto;
-      padding: 20px 20px 40px;
+      overflow-y: auto;
+      max-height: calc(100vh - 320px); /* 画面高さからヘッダー・コントロール分を引く */
+      padding: 0 20px 40px;
     }
     table {
       width: 100%;
@@ -162,6 +164,10 @@
       font-weight: 700;
       letter-spacing: 0.03em;
       font-size: 0.82rem;
+      /* ヘッダー固定 */
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     th:first-child { border-radius: 6px 0 0 6px; }
     th:last-child  { border-radius: 0 6px 6px 0; }
@@ -254,6 +260,22 @@
       <option value="原作">原作</option>
       <option value="アニメオリジナル">アニメオリジナル</option>
     </select>
+    <select id="filterStory">
+      <option value="">ストーリー関連（すべて）</option>
+      <option value="1">★1以上</option>
+      <option value="2">★2以上</option>
+      <option value="3">★3以上</option>
+      <option value="4">★4以上</option>
+      <option value="5">★5のみ</option>
+    </select>
+    <select id="filterRec">
+      <option value="">おすすめ度（すべて）</option>
+      <option value="1">★1以上</option>
+      <option value="2">★2以上</option>
+      <option value="3">★3以上</option>
+      <option value="4">★4以上</option>
+      <option value="5">★5のみ</option>
+    </select>
     <span class="count" id="count"></span>
   </div>
 
@@ -336,10 +358,22 @@ function render() {
   const search = document.getElementById('search').value.trim().toLowerCase();
   const season = document.getElementById('filterSeason').value;
   const type   = document.getElementById('filterType').value;
+  const story  = document.getElementById('filterStory').value;
+  const rec    = document.getElementById('filterRec').value;
   const filtered = allEpisodes.filter(e => {
     if (search && !e.title.toLowerCase().includes(search)) return false;
     if (season && e.season !== season) return false;
     if (type   && e.type   !== type)   return false;
+    if (story) {
+      const val = Number(e.story) || 0;
+      const min = Number(story);
+      if (story === '5' ? val !== 5 : val < min) return false;
+    }
+    if (rec) {
+      const val = Number(e.rec) || 0;
+      const min = Number(rec);
+      if (rec === '5' ? val !== 5 : val < min) return false;
+    }
     return true;
   });
   filtered.sort((a, b) => {
@@ -377,6 +411,8 @@ function render() {
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filterSeason').addEventListener('change', render);
 document.getElementById('filterType').addEventListener('change', render);
+document.getElementById('filterStory').addEventListener('change', render);
+document.getElementById('filterRec').addEventListener('change', render);
 document.querySelectorAll('th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.key;
