@@ -220,6 +220,13 @@
       border: 1px solid rgba(255,255,255,0.15);
       color: var(--text);
       white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .tag-chip:hover {
+      background: rgba(192,0,26,0.25);
+      border-color: var(--red);
+      color: #fff;
     }
 
     /* ===== タグ予測変換 ===== */
@@ -621,7 +628,7 @@ function render() {
       <td><span class="badge ${e.type === '原作' ? 'badge-manga' : 'badge-anime'}">${e.type}</span></td>
       <td>${stars(e.story)}</td>
       <td>${stars(e.rec)}</td>
-      <td>${e.tag.map(t => `<span class="tag-chip">${t}</span>`).join('')}</td>
+      <td>${e.tag.map(t => `<span class="tag-chip" onclick="filterByTag('${t}')">${t}</span>`).join('')}</td>
       <td>${e.note}</td>
     `;
     tbody.appendChild(tr);
@@ -635,6 +642,12 @@ function render() {
   const isFiltered = search || seasons.length || types.length || stories.length || recs.length;
   const isSorted   = sortKey !== 'num' || sortDir !== 'asc';
   document.getElementById('btnReset').classList.toggle('active', !!(isFiltered || isSorted));
+}
+
+function filterByTag(tag) {
+  document.getElementById('search').value = tag;
+  document.getElementById('tagSuggest').style.display = 'none';
+  render();
 }
 
 // ========================================
