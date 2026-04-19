@@ -209,6 +209,19 @@
     }
     .dropdown-clear:hover { background: rgba(192,0,26,0.3); }
 
+    /* ===== タグチップ ===== */
+    .tag-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 2px 3px 2px 0;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
     /* ===== タグ予測変換 ===== */
     #tagSuggest {
       display: none;
@@ -523,7 +536,7 @@ async function loadCSV() {
       type:   cols[3] || '',
       story:  cols[4] || '',
       rec:    cols[5] || '',
-      tag:    cols[6] || '',
+      tag:    (cols[6] || '').split(',').map(t => t.trim()).filter(Boolean),
       note:   cols[7] || '',
     };
   });
@@ -576,7 +589,7 @@ function render() {
   const recs    = getChecked('ddRec');
 
   const filtered = allEpisodes.filter(e => {
-    if (search   && !e.tag.toLowerCase().includes(search))                  return false;
+    if (search   && !e.tag.some(t => t.toLowerCase().includes(search)))      return false;
     if (seasons.length && !seasons.includes(e.season))                      return false;
     if (types.length   && !types.includes(e.type))                          return false;
     if (stories.length && !stories.includes(String(Number(e.story) || 0))) return false;
@@ -608,7 +621,7 @@ function render() {
       <td><span class="badge ${e.type === '原作' ? 'badge-manga' : 'badge-anime'}">${e.type}</span></td>
       <td>${stars(e.story)}</td>
       <td>${stars(e.rec)}</td>
-      <td>${e.tag}</td>
+      <td>${e.tag.map(t => `<span class="tag-chip">${t}</span>`).join('')}</td>
       <td>${e.note}</td>
     `;
     tbody.appendChild(tr);
@@ -631,8 +644,8 @@ let allTags = [];
 let suggestIndex = -1;
 
 function buildTagList() {
-  // CSVロード後に全タグを収集（重複なし・空除外）
-  allTags = [...new Set(allEpisodes.map(e => e.tag).filter(Boolean))].sort();
+  // 全エピソードのタグ配列をフラットにして重複なし・ソート
+  allTags = [...new Set(allEpisodes.flatMap(e => e.tag))].filter(Boolean).sort();
 }
 
 function showSuggest(val) {
