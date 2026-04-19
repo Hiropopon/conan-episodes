@@ -8,14 +8,13 @@
   <style>
     /* ===== CSS変数 ===== */
     :root {
-      --red:    #c0001a;
-      --dark:   #0d0d0d;
-      --black:  #111;
-      --gold:   #d4a017;
-      --glass:  rgba(10, 10, 20, 0.72);
-      --glass-border: rgba(255,255,255,0.08);
-      --text:   #f0f0f0;
-      --muted:  #aaa;
+      --red:   #c0001a;
+      --dark:  #0d0d0d;
+      --gold:  #d4a017;
+      --glass: rgba(10, 10, 20, 0.72);
+      --gb:    rgba(255,255,255,0.08);
+      --text:  #f0f0f0;
+      --muted: #aaa;
     }
 
     /* ===== リセット ===== */
@@ -29,7 +28,6 @@
       background: var(--dark);
       position: relative;
     }
-    /* 背景画像オーバーレイ */
     body::before {
       content: '';
       position: fixed;
@@ -40,24 +38,19 @@
       pointer-events: none;
     }
 
-    /* ===== ヘッダー ===== */
+    /* ===== ヘッダー（画像全表示） ===== */
     header {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-height: 260px;
-      overflow: hidden;
       border-bottom: 3px solid var(--red);
     }
     header img.header-img {
       width: 100%;
-      max-height: 260px;
-      object-fit: cover;
-      object-position: top center;
+      height: auto;
       display: block;
-      filter: brightness(0.7);
+      filter: brightness(0.75);
     }
-    /* ヘッダー上のタイトルテキスト */
     .header-overlay {
       position: absolute;
       inset: 0;
@@ -65,7 +58,7 @@
       flex-direction: column;
       justify-content: flex-end;
       padding: 20px 28px;
-      background: linear-gradient(to top, rgba(0,0,0,0.75) 40%, transparent);
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 30%, transparent);
     }
     .header-overlay h1 {
       font-family: 'Noto Serif JP', serif;
@@ -82,7 +75,6 @@
       margin-top: 4px;
       text-transform: uppercase;
     }
-    /* 赤いアクセントライン */
     .header-overlay::after {
       content: '';
       display: block;
@@ -93,26 +85,22 @@
       border-radius: 2px;
     }
 
-    /* ===== コンテンツ全体 ===== */
-    .content {
-      position: relative;
-      z-index: 1;
-    }
+    /* ===== コンテンツ ===== */
+    .content { position: relative; z-index: 1; }
 
     /* ===== 検索・フィルターエリア ===== */
     .controls {
       background: var(--glass);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--gb);
       padding: 14px 24px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
     }
-    .controls input,
-    .controls select {
+    .controls input[type="text"] {
       padding: 8px 12px;
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.15);
@@ -120,17 +108,131 @@
       font-size: 0.88rem;
       color: var(--text);
       font-family: 'Noto Sans JP', sans-serif;
-      transition: border-color 0.2s, background 0.2s;
+      width: 220px;
       outline: none;
+      transition: border-color 0.2s;
     }
-    .controls input::placeholder { color: var(--muted); }
-    .controls input[type="text"] { width: 240px; }
-    .controls input:focus,
-    .controls select:focus {
+    .controls input[type="text"]::placeholder { color: var(--muted); }
+    .controls input[type="text"]:focus { border-color: var(--red); }
+
+    /* ===== カスタムドロップダウン（複数選択） ===== */
+    .dropdown { position: relative; }
+    .dropdown-btn {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 150px;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .dropdown-btn:hover,
+    .dropdown.open .dropdown-btn {
       border-color: var(--red);
       background: rgba(255,255,255,0.11);
     }
-    .controls select option { background: #1a1a2a; color: var(--text); }
+    .dropdown-btn .arrow {
+      margin-left: auto;
+      font-size: 0.7rem;
+      opacity: 0.6;
+      transition: transform 0.2s;
+    }
+    .dropdown.open .dropdown-btn .arrow { transform: rotate(180deg); }
+    .dropdown-btn .badge-count {
+      background: var(--red);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 100%;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 6px 0;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown-menu label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .dropdown-menu label:hover { background: rgba(192,0,26,0.2); }
+    .dropdown-menu input[type="checkbox"] {
+      accent-color: var(--red);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    .dropdown-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 4px 0;
+    }
+    .dropdown-clear {
+      display: block;
+      width: calc(100% - 16px);
+      margin: 4px 8px 2px;
+      padding: 5px 0;
+      background: rgba(192,0,26,0.15);
+      border: 1px solid rgba(192,0,26,0.3);
+      border-radius: 5px;
+      color: #fca5a5;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+      text-align: center;
+      transition: background 0.15s;
+    }
+    .dropdown-clear:hover { background: rgba(192,0,26,0.3); }
+
+    /* ===== リセットボタン ===== */
+    .btn-reset {
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-reset:hover {
+      border-color: var(--red);
+      color: #fca5a5;
+      background: rgba(192,0,26,0.12);
+    }
+    .btn-reset.active {
+      border-color: var(--red);
+      color: #fca5a5;
+    }
+
     .count {
       margin-left: auto;
       font-size: 0.82rem;
@@ -143,7 +245,7 @@
     .table-wrap {
       overflow-x: auto;
       overflow-y: auto;
-      max-height: calc(100vh - 320px); /* 画面高さからヘッダー・コントロール分を引く */
+      max-height: calc(100vh - 280px);
       padding: 0 20px 40px;
     }
     table {
@@ -152,9 +254,7 @@
       border-spacing: 0 4px;
       font-size: 0.88rem;
     }
-    thead tr {
-      background: transparent;
-    }
+    thead tr { background: transparent; }
     th {
       background: rgba(192,0,26,0.85);
       color: #fff;
@@ -164,7 +264,6 @@
       font-weight: 700;
       letter-spacing: 0.03em;
       font-size: 0.82rem;
-      /* ヘッダー固定 */
       position: sticky;
       top: 0;
       z-index: 10;
@@ -172,10 +271,10 @@
     th:first-child { border-radius: 6px 0 0 6px; }
     th:last-child  { border-radius: 0 6px 6px 0; }
     th.sortable { cursor: pointer; user-select: none; }
-    th.sortable:hover { background: rgba(192,0,26,1); }
-    th.sortable::after      { content: ' ▲▼'; font-size: 0.65rem; opacity: 0.4; }
-    th.sort-asc::after      { content: ' ▲';  font-size: 0.7rem;  opacity: 1; }
-    th.sort-desc::after     { content: ' ▼';  font-size: 0.7rem;  opacity: 1; }
+    th.sortable:hover  { background: rgba(192,0,26,1); }
+    th.sortable::after { content: ' ▲▼'; font-size: 0.65rem; opacity: 0.4; }
+    th.sort-asc::after  { content: ' ▲'; font-size: 0.7rem; opacity: 1; }
+    th.sort-desc::after { content: ' ▼'; font-size: 0.7rem; opacity: 1; }
 
     tbody tr {
       background: var(--glass);
@@ -192,12 +291,8 @@
       border-bottom: 1px solid rgba(255,255,255,0.04);
       color: var(--text);
     }
-    td:first-child {
-      border-radius: 6px 0 0 6px;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-    td:last-child { border-radius: 0 6px 6px 0; }
+    td:first-child { border-radius: 6px 0 0 6px; color: var(--muted); font-size: 0.8rem; }
+    td:last-child  { border-radius: 0 6px 6px 0; }
 
     /* ===== バッジ ===== */
     .badge {
@@ -207,33 +302,24 @@
       font-size: 0.75rem;
       font-weight: 700;
       white-space: nowrap;
-      letter-spacing: 0.02em;
     }
-    .badge-manga { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
-    .badge-anime { background: rgba(234,179,8,0.15); color: #fde68a; border: 1px solid rgba(234,179,8,0.25); }
-    .badge-org   { background: rgba(192,0,26,0.2);  color: #fca5a5; border: 1px solid rgba(192,0,26,0.3); }
+    .badge-manga { background: rgba(59,130,246,0.2);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-anime { background: rgba(234,179,8,0.15);  color: #fde68a; border: 1px solid rgba(234,179,8,0.25); }
 
     /* ===== 星評価 ===== */
     .stars { color: var(--gold); letter-spacing: -2px; font-size: 0.95rem; }
 
     /* ===== 0件メッセージ ===== */
-    .no-results {
-      text-align: center;
-      padding: 60px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
+    .no-results { text-align: center; padding: 60px; color: var(--muted); font-size: 0.95rem; }
 
     /* ===== スマホ対応 ===== */
     @media (max-width: 600px) {
       .controls { padding: 12px 14px; gap: 8px; }
       .controls input[type="text"] { width: 100%; }
-      .controls select { flex: 1; min-width: 0; }
+      .dropdown-btn { min-width: 0; flex: 1; }
       .count { margin-left: 0; width: 100%; text-align: right; }
-      .table-wrap { padding: 12px 10px 40px; }
+      .table-wrap { padding: 8px 8px 40px; }
       th, td { padding: 8px 9px; font-size: 0.8rem; }
-      header { max-height: 180px; }
-      header img.header-img { max-height: 180px; }
     }
   </style>
 </head>
@@ -252,30 +338,68 @@
   <!-- 検索・フィルター -->
   <div class="controls">
     <input type="text" id="search" placeholder="🔍 タイトルで検索...">
-    <select id="filterSeason">
-      <option value="">シーズン（すべて）</option>
-    </select>
-    <select id="filterType">
-      <option value="">原作 / オリジナル（すべて）</option>
-      <option value="原作">原作</option>
-      <option value="アニメオリジナル">アニメオリジナル</option>
-    </select>
-    <select id="filterStory">
-      <option value="">ストーリー関連（すべて）</option>
-      <option value="1">★1以上</option>
-      <option value="2">★2以上</option>
-      <option value="3">★3以上</option>
-      <option value="4">★4以上</option>
-      <option value="5">★5のみ</option>
-    </select>
-    <select id="filterRec">
-      <option value="">おすすめ度（すべて）</option>
-      <option value="1">★1以上</option>
-      <option value="2">★2以上</option>
-      <option value="3">★3以上</option>
-      <option value="4">★4以上</option>
-      <option value="5">★5のみ</option>
-    </select>
+
+    <!-- シーズン -->
+    <div class="dropdown" id="ddSeason">
+      <div class="dropdown-btn" onclick="toggleDD('ddSeason')">
+        <span class="dd-label">シーズン</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dropdown-menu" id="menuSeason">
+        <button class="dropdown-clear" onclick="clearDD('ddSeason')">すべて解除</button>
+        <hr class="dropdown-divider">
+      </div>
+    </div>
+
+    <!-- 原作/オリジナル -->
+    <div class="dropdown" id="ddType">
+      <div class="dropdown-btn" onclick="toggleDD('ddType')">
+        <span class="dd-label">原作 / オリジナル</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dropdown-menu">
+        <button class="dropdown-clear" onclick="clearDD('ddType')">すべて解除</button>
+        <hr class="dropdown-divider">
+        <label><input type="checkbox" value="原作"> 原作</label>
+        <label><input type="checkbox" value="アニメオリジナル"> アニメオリジナル</label>
+      </div>
+    </div>
+
+    <!-- ストーリー関連 -->
+    <div class="dropdown" id="ddStory">
+      <div class="dropdown-btn" onclick="toggleDD('ddStory')">
+        <span class="dd-label">ストーリー関連</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dropdown-menu">
+        <button class="dropdown-clear" onclick="clearDD('ddStory')">すべて解除</button>
+        <hr class="dropdown-divider">
+        <label><input type="checkbox" value="1"> ★1</label>
+        <label><input type="checkbox" value="2"> ★2</label>
+        <label><input type="checkbox" value="3"> ★3</label>
+        <label><input type="checkbox" value="4"> ★4</label>
+        <label><input type="checkbox" value="5"> ★5</label>
+      </div>
+    </div>
+
+    <!-- おすすめ度 -->
+    <div class="dropdown" id="ddRec">
+      <div class="dropdown-btn" onclick="toggleDD('ddRec')">
+        <span class="dd-label">おすすめ度</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dropdown-menu">
+        <button class="dropdown-clear" onclick="clearDD('ddRec')">すべて解除</button>
+        <hr class="dropdown-divider">
+        <label><input type="checkbox" value="1"> ★1</label>
+        <label><input type="checkbox" value="2"> ★2</label>
+        <label><input type="checkbox" value="3"> ★3</label>
+        <label><input type="checkbox" value="4"> ★4</label>
+        <label><input type="checkbox" value="5"> ★5</label>
+      </div>
+    </div>
+
+    <button class="btn-reset" id="btnReset" onclick="resetAll()">✕ リセット</button>
     <span class="count" id="count"></span>
   </div>
 
@@ -305,6 +429,52 @@ let allEpisodes = [];
 let sortKey = 'num';
 let sortDir = 'asc';
 
+// ドロップダウン開閉
+function toggleDD(id) {
+  const dd = document.getElementById(id);
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) dd.classList.add('open');
+}
+// 外クリックで閉じる
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// チェックを全解除
+function clearDD(id) {
+  document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => cb.checked = false);
+  updateBadge(id);
+  render();
+}
+
+// 選択数バッジ更新
+function updateBadge(id) {
+  const dd = document.getElementById(id);
+  const checked = dd.querySelectorAll('input[type="checkbox"]:checked').length;
+  let badge = dd.querySelector('.badge-count');
+  if (checked > 0) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'badge-count';
+      dd.querySelector('.dd-label').after(badge);
+    }
+    badge.textContent = checked;
+  } else {
+    if (badge) badge.remove();
+  }
+}
+
+// チェックボックスにイベント登録（動的生成分も含めて後から登録）
+function bindCheckboxes(ddId) {
+  document.querySelectorAll(`#${ddId} input[type="checkbox"]`).forEach(cb => {
+    cb.addEventListener('change', () => { updateBadge(ddId); render(); });
+  });
+}
+
+// CSV読み込み
 async function loadCSV() {
   const res = await fetch('conan_episodes.csv');
   const text = await res.text();
@@ -322,16 +492,21 @@ async function loadCSV() {
       note:   cols[7] || '',
     };
   });
+
+  // シーズン選択肢を動的生成
   const seasons = [...new Set(allEpisodes.map(e => e.season))]
     .filter(Boolean)
     .sort((a, b) => Number(a) - Number(b));
-  const sel = document.getElementById('filterSeason');
+  const menu = document.getElementById('menuSeason');
   seasons.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = 'シーズン ' + s;
-    sel.appendChild(opt);
+    const label = document.createElement('label');
+    label.innerHTML = `<input type="checkbox" value="${s}"> シーズン ${s}`;
+    menu.appendChild(label);
   });
+
+  // 全ドロップダウンにイベント登録
+  ['ddSeason','ddType','ddStory','ddRec'].forEach(bindCheckboxes);
+
   render();
 }
 
@@ -354,39 +529,39 @@ function stars(n) {
   return '<span class="stars">' + '★'.repeat(Math.min(val, 5)) + '</span>';
 }
 
+function getChecked(id) {
+  return [...document.querySelectorAll(`#${id} input[type="checkbox"]:checked`)].map(cb => cb.value);
+}
+
 function render() {
-  const search = document.getElementById('search').value.trim().toLowerCase();
-  const season = document.getElementById('filterSeason').value;
-  const type   = document.getElementById('filterType').value;
-  const story  = document.getElementById('filterStory').value;
-  const rec    = document.getElementById('filterRec').value;
+  const search  = document.getElementById('search').value.trim().toLowerCase();
+  const seasons = getChecked('ddSeason');
+  const types   = getChecked('ddType');
+  const stories = getChecked('ddStory');
+  const recs    = getChecked('ddRec');
+
   const filtered = allEpisodes.filter(e => {
-    if (search && !e.title.toLowerCase().includes(search)) return false;
-    if (season && e.season !== season) return false;
-    if (type   && e.type   !== type)   return false;
-    if (story) {
-      const val = Number(e.story) || 0;
-      const min = Number(story);
-      if (story === '5' ? val !== 5 : val < min) return false;
-    }
-    if (rec) {
-      const val = Number(e.rec) || 0;
-      const min = Number(rec);
-      if (rec === '5' ? val !== 5 : val < min) return false;
-    }
+    if (search   && !e.title.toLowerCase().includes(search))              return false;
+    if (seasons.length && !seasons.includes(e.season))                    return false;
+    if (types.length   && !types.includes(e.type))                        return false;
+    if (stories.length && !stories.includes(String(Number(e.story) || 0))) return false;
+    if (recs.length    && !recs.includes(String(Number(e.rec) || 0)))      return false;
     return true;
   });
+
   filtered.sort((a, b) => {
     const va = Number(a[sortKey]) || 0;
     const vb = Number(b[sortKey]) || 0;
     return sortDir === 'asc' ? va - vb : vb - va;
   });
+
   document.querySelectorAll('th.sortable').forEach(th => {
     th.classList.remove('sort-asc', 'sort-desc');
     if (th.dataset.key === sortKey) {
       th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
     }
   });
+
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   filtered.forEach(e => {
@@ -403,16 +578,31 @@ function render() {
     `;
     tbody.appendChild(tr);
   });
+
   const countEl = document.getElementById('count');
   countEl.innerHTML = `<span>${filtered.length}</span> / ${allEpisodes.length} 件`;
   document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+
+  // フィルター・ソートが初期値でなければリセットボタンをハイライト
+  const isFiltered = search || seasons.length || types.length || stories.length || recs.length;
+  const isSorted   = sortKey !== 'num' || sortDir !== 'asc';
+  document.getElementById('btnReset').classList.toggle('active', !!(isFiltered || isSorted));
+}
+
+// 全フィルター・ソートをリセット
+function resetAll() {
+  document.getElementById('search').value = '';
+  ['ddSeason','ddType','ddStory','ddRec'].forEach(id => {
+    document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => cb.checked = false);
+    updateBadge(id);
+  });
+  sortKey = 'num';
+  sortDir = 'asc';
+  render();
 }
 
 document.getElementById('search').addEventListener('input', render);
-document.getElementById('filterSeason').addEventListener('change', render);
-document.getElementById('filterType').addEventListener('change', render);
-document.getElementById('filterStory').addEventListener('change', render);
-document.getElementById('filterRec').addEventListener('change', render);
+
 document.querySelectorAll('th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.key;
