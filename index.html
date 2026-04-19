@@ -209,6 +209,36 @@
     }
     .dropdown-clear:hover { background: rgba(192,0,26,0.3); }
 
+    /* ===== タグ予測変換 ===== */
+    #tagSuggest {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 220px;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 4px 0;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      list-style: none;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    #tagSuggest li {
+      padding: 8px 14px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    #tagSuggest li:hover,
+    #tagSuggest li.active {
+      background: rgba(192,0,26,0.25);
+      color: #fff;
+    }
+
     /* ===== リセットボタン ===== */
     .btn-reset {
       padding: 8px 14px;
@@ -339,7 +369,10 @@
 <div class="content">
   <!-- 検索・フィルター -->
   <div class="controls">
-    <input type="text" id="search" placeholder="🔍 タイトルで検索...">
+    <div style="position:relative;">
+      <input type="text" id="search" placeholder="🔍 関連タグで検索..." autocomplete="off">
+      <ul id="tagSuggest"></ul>
+    </div>
 
     <!-- シーズン -->
     <div class="dropdown" id="ddSeason">
@@ -543,9 +576,9 @@ function render() {
   const recs    = getChecked('ddRec');
 
   const filtered = allEpisodes.filter(e => {
-    if (search   && !e.title.toLowerCase().includes(search))              return false;
-    if (seasons.length && !seasons.includes(e.season))                    return false;
-    if (types.length   && !types.includes(e.type))                        return false;
+    if (search   && !e.tag.toLowerCase().includes(search))                  return false;
+    if (seasons.length && !seasons.includes(e.season))                      return false;
+    if (types.length   && !types.includes(e.type))                          return false;
     if (stories.length && !stories.includes(String(Number(e.story) || 0))) return false;
     if (recs.length    && !recs.includes(String(Number(e.rec) || 0)))      return false;
     return true;
@@ -591,9 +624,84 @@ function render() {
   document.getElementById('btnReset').classList.toggle('active', !!(isFiltered || isSorted));
 }
 
+// ========================================
+// タグ予測変換
+// ========================================
+let allTags = [];
+let suggestIndex = -1;
+
+function buildTagList() {
+  // CSVロード後に全タグを収集（重複なし・空除外）
+  allTags = [...new Set(allEpisodes.map(e => e.tag).filter(Boolean))].sort();
+}
+
+function showSuggest(val) {
+  const ul = document.getElementById('tagSuggest');
+  const q  = val.trim().toLowerCase();
+  if (!q) { ul.style.display = 'none'; return; }
+
+  const matched = allTags.filter(t => t.toLowerCase().includes(q));
+  if (matched.length === 0) { ul.style.display = 'none'; return; }
+
+  ul.innerHTML = '';
+  matched.forEach(tag => {
+    const li = document.createElement('li');
+    li.textContent = tag;
+    li.addEventListener('mousedown', () => {
+      document.getElementById('search').value = tag;
+      ul.style.display = 'none';
+      render();
+    });
+    ul.appendChild(li);
+  });
+  ul.style.display = 'block';
+  suggestIndex = -1;
+}
+
+const searchEl = document.getElementById('search');
+const suggestEl = document.getElementById('tagSuggest');
+
+searchEl.addEventListener('input', () => {
+  showSuggest(searchEl.value);
+  render();
+});
+
+// キーボード操作（↑↓で選択、Enterで確定、Escで閉じる）
+searchEl.addEventListener('keydown', e => {
+  const items = suggestEl.querySelectorAll('li');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    suggestIndex = Math.min(suggestIndex + 1, items.length - 1);
+    items.forEach((li, i) => li.classList.toggle('active', i === suggestIndex));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    suggestIndex = Math.max(suggestIndex - 1, -1);
+    items.forEach((li, i) => li.classList.toggle('active', i === suggestIndex));
+  } else if (e.key === 'Enter' && suggestIndex >= 0) {
+    e.preventDefault();
+    searchEl.value = items[suggestIndex].textContent;
+    suggestEl.style.display = 'none';
+    render();
+  } else if (e.key === 'Escape') {
+    suggestEl.style.display = 'none';
+  }
+});
+
+// 外クリックでサジェストを閉じる
+document.addEventListener('click', e => {
+  if (!e.target.closest('#search') && !e.target.closest('#tagSuggest')) {
+    suggestEl.style.display = 'none';
+  }
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
 // 全フィルター・ソートをリセット
 function resetAll() {
   document.getElementById('search').value = '';
+  suggestEl.style.display = 'none';
   ['ddSeason','ddType','ddStory','ddRec'].forEach(id => {
     document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => cb.checked = false);
     updateBadge(id);
@@ -602,8 +710,6 @@ function resetAll() {
   sortDir = 'asc';
   render();
 }
-
-document.getElementById('search').addEventListener('input', render);
 
 document.querySelectorAll('th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -618,7 +724,11 @@ document.querySelectorAll('th.sortable').forEach(th => {
   });
 });
 
-loadCSV();
+async function init() {
+  await loadCSV();
+  buildTagList();
+}
+init();
 </script>
 </body>
 </html>
