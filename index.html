@@ -4,23 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>名探偵コナン アニメエピソード一覧</title>
+
+  <!--
+    Google Fonts の読み込み
+    - DotGothic16   : ドット感のある太いゴシック体。ヘッダータイトルに使用
+    - Noto Sans JP  : 日本語対応の読みやすいサンセリフ体。本文全般に使用
+  -->
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
   <style>
-    /* ===== CSS変数 ===== */
+    /* =====================================================
+       CSS カスタムプロパティ（変数）
+       サイト全体で使う色・透明度を一元管理する
+       変更したい場合はここだけ修正すれば全体に反映される
+    ===================================================== */
     :root {
-      --red:   #c0001a;
-      --dark:  #0d0d0d;
-      --gold:  #d4a017;
-      --glass: rgba(10, 10, 20, 0.72);
-      --gb:    rgba(255,255,255,0.08);
-      --text:  #f0f0f0;
-      --muted: #aaa;
+      --red:   #c0001a;              /* メインカラー：コナンイメージの赤 */
+      --dark:  #0d0d0d;              /* ページ背景色：ほぼ黒 */
+      --gold:  #d4a017;              /* アクセントカラー：ゴールド */
+      --glass: rgba(10, 10, 20, 0.72); /* ガラス効果の背景色（半透明の濃紺） */
+      --gb:    rgba(255,255,255,0.08); /* ガラス効果のボーダー色 */
+      --text:  #f0f0f0;              /* 本文テキストの色：ほぼ白 */
+      --muted: #aaa;                 /* 補助テキストの色：グレー */
     }
 
-    /* ===== リセット ===== */
+    /* =====================================================
+       リセット
+       ブラウザごとのデフォルトスタイルの差異をなくす
+    ===================================================== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ===== 背景 ===== */
+    /* =====================================================
+       body（ページ全体）
+       - 背景色を黒に設定
+       - position: relative は ::before 疑似要素（背景画像）の基準点にするため
+    ===================================================== */
     body {
       font-family: 'Noto Sans JP', sans-serif;
       color: var(--text);
@@ -28,6 +46,14 @@
       background: var(--dark);
       position: relative;
     }
+
+    /* =====================================================
+       body::before — 背景画像オーバーレイ
+       - back.JPG を画面全体に固定表示（スクロールしても動かない）
+       - opacity: 0.18 で薄く透かしてコンテンツの邪魔をしない
+       - pointer-events: none でクリックを通過させる
+       - z-index: 0 で全コンテンツの後ろに配置
+    ===================================================== */
     body::before {
       content: '';
       position: fixed;
@@ -38,19 +64,31 @@
       pointer-events: none;
     }
 
-    /* ===== ヘッダー（画像全表示） ===== */
+    /* =====================================================
+       header — ヘッダー画像エリア
+       - position: relative は内部の .header-overlay を絶対配置するための基準
+       - z-index: 1 で背景画像（z-index: 0）より前面に出す
+       - height: auto で画像を縦に切らず全体を表示
+    ===================================================== */
     header {
       position: relative;
       z-index: 1;
       width: 100%;
-      border-bottom: 3px solid var(--red);
+      border-bottom: 3px solid var(--red); /* 下端に赤いラインを引く */
     }
     header img.header-img {
       width: 100%;
-      height: auto;
+      height: auto;           /* 縦を自動にすることで画像全体を表示（切り取らない） */
       display: block;
-      filter: brightness(0.75);
+      filter: brightness(0.75); /* 少し暗くしてテキストを読みやすくする */
     }
+
+    /* =====================================================
+       .header-overlay — ヘッダー画像の上に重ねるテキスト層
+       - position: absolute + inset: 0 で画像と同じサイズに重ねる
+       - justify-content: flex-end でテキストを下端に配置
+       - グラデーションで下側を暗くしてテキストの視認性を確保
+    ===================================================== */
     .header-overlay {
       position: absolute;
       inset: 0;
@@ -60,21 +98,26 @@
       padding: 20px 28px;
       background: linear-gradient(to top, rgba(0,0,0,0.75) 30%, transparent);
     }
+
+    /* ヘッダーメインタイトル（日本語） */
     .header-overlay h1 {
-      font-family: 'DotGothic16', 'Noto Sans JP', sans-serif;
-      font-size: clamp(1.4rem, 5vw, 2.6rem);
+      font-family: 'DotGothic16', 'Noto Sans JP', sans-serif; /* アニメ風ドットゴシック体 */
+      font-size: clamp(1.4rem, 5vw, 2.6rem); /* clamp: 最小・推奨・最大でレスポンシブに対応 */
       font-weight: 400;
       letter-spacing: 0.12em;
       color: #fff;
+      /* 複数のtext-shadowを重ねて赤いグロー効果を作る */
       text-shadow:
-        0 0 12px rgba(192,0,26,0.8),
-        0 2px 16px rgba(0,0,0,0.9),
-        3px 3px 0px rgba(192,0,26,0.4);
+        0 0 12px rgba(192,0,26,0.8),   /* 赤いぼかし光 */
+        0 2px 16px rgba(0,0,0,0.9),    /* 黒い影で浮き出し */
+        3px 3px 0px rgba(192,0,26,0.4); /* 右下への赤い落ち影 */
     }
+
+    /* サブタイトル（CASE FILE） */
     .header-overlay .subtitle {
       font-size: 0.95rem;
       color: var(--gold);
-      letter-spacing: 0.4em;
+      letter-spacing: 0.4em; /* 広めの字間で高級感を演出 */
       font-family: 'Noto Sans JP', sans-serif;
       font-weight: 700;
       text-transform: uppercase;
@@ -82,12 +125,15 @@
       align-items: center;
       gap: 12px;
     }
+    /* ::after 疑似要素でサブタイトルの右に「——」を赤く追加 */
     .header-overlay .subtitle::after {
       content: '——';
       color: var(--red);
       letter-spacing: -2px;
       opacity: 0.9;
     }
+
+    /* ヘッダー下部の赤い装飾ライン（::after 疑似要素） */
     .header-overlay::after {
       content: '';
       display: block;
@@ -98,23 +144,62 @@
       border-radius: 2px;
     }
 
-    /* ===== コンテンツ ===== */
+    /* =====================================================
+       .content — メインコンテンツ全体のラッパー
+       - z-index: 1 で背景画像より前面に表示
+    ===================================================== */
     .content { position: relative; z-index: 1; }
 
-    /* ===== 検索・フィルターエリア ===== */
+    /* =====================================================
+       .controls — 検索・フィルターバー
+       - backdrop-filter: blur でガラスモーフィズム効果
+       - position: relative + z-index: 50 でドロップダウンが
+         テーブルヘッダー（z-index: 10）より上に表示されるようにする
+    ===================================================== */
     .controls {
       background: var(--glass);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);           /* 背景をぼかしてガラス感を出す */
+      -webkit-backdrop-filter: blur(12px);   /* Safari 向けのベンダープレフィックス */
       border-bottom: 1px solid var(--gb);
       padding: 14px 24px;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: wrap;   /* 画面が狭いと自動的に折り返す */
       gap: 10px;
       align-items: center;
       position: relative;
-      z-index: 50;
+      z-index: 50;       /* ドロップダウンメニューがテーブルに隠れないようにする */
     }
+
+    /* AND / OR トグルボタン */
+    .search-mode {
+      display: flex;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .search-mode button {
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.15s, color 0.15s;
+    }
+    /* 選択中のボタンを赤くハイライト */
+    .search-mode button.active {
+      background: var(--red);
+      color: #fff;
+    }
+    .search-mode button:not(.active):hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    /* タグ検索テキストボックス */
     .controls input[type="text"] {
       padding: 8px 12px;
       background: rgba(255,255,255,0.07);
@@ -125,13 +210,22 @@
       font-family: 'Noto Sans JP', sans-serif;
       width: 220px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s; /* フォーカス時にボーダー色が滑らかに変化 */
     }
     .controls input[type="text"]::placeholder { color: var(--muted); }
+    /* フォーカス時にボーダーを赤くしてアクティブ状態を示す */
     .controls input[type="text"]:focus { border-color: var(--red); }
 
-    /* ===== カスタムドロップダウン（複数選択） ===== */
+    /* =====================================================
+       カスタムドロップダウン（複数選択チェックボックス式）
+       ブラウザ標準の <select multiple> は見た目をカスタマイズ
+       しづらいため、div + チェックボックスで自作している
+    ===================================================== */
+
+    /* ドロップダウン全体のコンテナ。position: relative でメニューの基準点になる */
     .dropdown { position: relative; }
+
+    /* ドロップダウンを開くボタン部分 */
     .dropdown-btn {
       padding: 8px 12px;
       background: rgba(255,255,255,0.07);
@@ -147,20 +241,26 @@
       gap: 6px;
       min-width: 150px;
       transition: border-color 0.2s, background 0.2s;
-      user-select: none;
+      user-select: none; /* テキスト選択を無効化（クリック時に文字が選択されるのを防ぐ） */
     }
+    /* ホバー時・開いた時にボーダーを赤くしてアクティブ状態を示す */
     .dropdown-btn:hover,
     .dropdown.open .dropdown-btn {
       border-color: var(--red);
       background: rgba(255,255,255,0.11);
     }
+
+    /* ▼ アイコン：開閉状態を示す矢印 */
     .dropdown-btn .arrow {
-      margin-left: auto;
+      margin-left: auto; /* 右端に寄せる */
       font-size: 0.7rem;
       opacity: 0.6;
       transition: transform 0.2s;
     }
+    /* 開いた時に矢印を上向きに反転する */
     .dropdown.open .dropdown-btn .arrow { transform: rotate(180deg); }
+
+    /* 選択中の項目数を示す赤いバッジ（選択数 > 0 の時だけ JS で挿入） */
     .dropdown-btn .badge-count {
       background: var(--red);
       color: #fff;
@@ -169,20 +269,25 @@
       font-size: 0.72rem;
       font-weight: 700;
     }
+
+    /* ドロップダウンメニュー本体（初期は非表示） */
     .dropdown-menu {
       display: none;
       position: absolute;
-      top: calc(100% + 6px);
+      top: calc(100% + 6px); /* ボタンのすぐ下に表示 */
       left: 0;
       min-width: 100%;
       background: #1a1a2e;
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 8px;
       padding: 6px 0;
-      z-index: 200;
+      z-index: 200; /* .controls（z-index: 50）より上、かつテーブルヘッダーより上 */
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
+    /* .open クラスが付いた時だけメニューを表示（JS で切り替える） */
     .dropdown.open .dropdown-menu { display: block; }
+
+    /* メニュー内の各選択肢（チェックボックス + ラベルテキスト） */
     .dropdown-menu label {
       display: flex;
       align-items: center;
@@ -194,17 +299,23 @@
       white-space: nowrap;
     }
     .dropdown-menu label:hover { background: rgba(192,0,26,0.2); }
+
+    /* チェックボックス本体：accent-color で色をカスタマイズ */
     .dropdown-menu input[type="checkbox"] {
       accent-color: var(--red);
       width: 14px;
       height: 14px;
       cursor: pointer;
     }
+
+    /* メニュー内の区切り線 */
     .dropdown-divider {
       border: none;
       border-top: 1px solid rgba(255,255,255,0.08);
       margin: 4px 0;
     }
+
+    /* 「すべて解除」ボタン：ドロップダウン内の一括解除用 */
     .dropdown-clear {
       display: block;
       width: calc(100% - 16px);
@@ -222,7 +333,11 @@
     }
     .dropdown-clear:hover { background: rgba(192,0,26,0.3); }
 
-    /* ===== タグチップ ===== */
+    /* =====================================================
+       タグチップ
+       関連タグ列の各タグをボタン風に表示する
+       クリックするとそのタグで検索がかかる（JS で実装）
+    ===================================================== */
     .tag-chip {
       display: inline-block;
       padding: 2px 8px;
@@ -236,15 +351,21 @@
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
     }
+    /* ホバー時に赤くしてクリック可能であることを示す */
     .tag-chip:hover {
       background: rgba(192,0,26,0.25);
       border-color: var(--red);
       color: #fff;
     }
 
-    /* ===== タグ予測変換 ===== */
+    /* =====================================================
+       タグ予測変換リスト（オートコンプリート）
+       検索ボックス入力中にマッチするタグを一覧表示する
+       - position: absolute で検索ボックスの直下に配置
+       - max-height + overflow-y: auto で候補が多い時にスクロール
+    ===================================================== */
     #tagSuggest {
-      display: none;
+      display: none; /* 初期は非表示。JS で show/hide を切り替える */
       position: absolute;
       top: calc(100% + 4px);
       left: 0;
@@ -257,7 +378,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       list-style: none;
       max-height: 240px;
-      overflow-y: auto;
+      overflow-y: auto; /* 候補が多い場合は縦スクロール */
     }
     #tagSuggest li {
       padding: 8px 14px;
@@ -266,13 +387,18 @@
       transition: background 0.15s;
       white-space: nowrap;
     }
+    /* ホバーまたはキーボードで選択中の項目を赤くハイライト */
     #tagSuggest li:hover,
     #tagSuggest li.active {
       background: rgba(192,0,26,0.25);
       color: #fff;
     }
 
-    /* ===== リセットボタン ===== */
+    /* =====================================================
+       リセットボタン
+       - 通常時はグレーで控えめに表示
+       - フィルターやソートが初期値から変更されると .active が付き赤くなる
+    ===================================================== */
     .btn-reset {
       padding: 8px 14px;
       background: transparent;
@@ -293,35 +419,44 @@
       color: #fca5a5;
       background: rgba(192,0,26,0.12);
     }
+    /* フィルター中またはソート変更中に JS で付与されるクラス */
     .btn-reset.active {
       border-color: var(--red);
       color: #fca5a5;
     }
 
+    /* 件数表示（右端に寄せる） */
     .count {
       margin-left: auto;
       font-size: 0.82rem;
       color: var(--muted);
       white-space: nowrap;
     }
+    /* 一致件数の数字だけゴールドで強調 */
     .count span { color: var(--gold); font-weight: 700; }
 
-    /* ===== テーブルエリア ===== */
+    /* =====================================================
+       テーブルエリア
+       - overflow-y: auto + max-height でテーブル内スクロール
+       - ヘッダー行は position: sticky で常に上部に固定表示
+    ===================================================== */
     .table-wrap {
-      overflow-x: auto;
-      overflow-y: auto;
-      max-height: calc(100vh - 280px);
+      overflow-x: auto;  /* 横幅が足りない場合は横スクロール */
+      overflow-y: auto;  /* 縦スクロールを有効にする */
+      max-height: calc(100vh - 280px); /* ビューポート高さからヘッダー・コントロールの高さを引いた値 */
       padding: 0 20px 40px;
     }
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 4px;
+      border-collapse: separate; /* セル間に gap（border-spacing）を設けるために必要 */
+      border-spacing: 0 4px;     /* 行と行の間に 4px の隙間を作る */
       font-size: 0.88rem;
     }
     thead tr { background: transparent; }
+
+    /* テーブルヘッダーセル */
     th {
-      background: rgba(192,0,26,0.85);
+      background: rgba(192,0,26,0.85); /* 半透明の赤 */
       color: #fff;
       padding: 11px 14px;
       text-align: left;
@@ -329,37 +464,50 @@
       font-weight: 700;
       letter-spacing: 0.03em;
       font-size: 0.82rem;
+      /* スクロールしてもカラム名を上部に固定する */
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 10; /* tbody より上に表示（ただし .controls より下） */
     }
+    /* 角丸：先頭と末尾のセルだけに付ける */
     th:first-child { border-radius: 6px 0 0 6px; }
     th:last-child  { border-radius: 0 6px 6px 0; }
+
+    /* ソート可能なヘッダーセル */
     th.sortable { cursor: pointer; user-select: none; }
-    th.sortable:hover  { background: rgba(192,0,26,1); }
+    th.sortable:hover  { background: rgba(192,0,26,1); } /* ホバーで不透明に */
+    /* data-key 属性と sortKey が一致しない列には ▲▼ を薄く表示 */
     th.sortable::after { content: ' ▲▼'; font-size: 0.65rem; opacity: 0.4; }
+    /* ソート中の列：昇順は ▲、降順は ▼ を強調表示 */
     th.sort-asc::after  { content: ' ▲'; font-size: 0.7rem; opacity: 1; }
     th.sort-desc::after { content: ' ▼'; font-size: 0.7rem; opacity: 1; }
 
+    /* データ行 */
     tbody tr {
-      background: var(--glass);
+      background: var(--glass);           /* ガラスモーフィズムの半透明背景 */
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       transition: background 0.15s, transform 0.1s;
     }
+    /* ホバー時に赤みがかった背景にして、右にわずかにずらす */
     tbody tr:hover {
       background: rgba(192,0,26,0.18);
       transform: translateX(2px);
     }
+
+    /* データセル */
     td {
       padding: 9px 14px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
       color: var(--text);
     }
+    /* 先頭セル（エピソード番号）は角丸＋グレー文字で控えめに */
     td:first-child { border-radius: 6px 0 0 6px; color: var(--muted); font-size: 0.8rem; }
     td:last-child  { border-radius: 0 6px 6px 0; }
 
-    /* ===== バッジ ===== */
+    /* =====================================================
+       バッジ（原作 / アニメオリジナルの区別を色で示す）
+    ===================================================== */
     .badge {
       display: inline-block;
       padding: 2px 9px;
@@ -368,20 +516,22 @@
       font-weight: 700;
       white-space: nowrap;
     }
-    .badge-manga { background: rgba(59,130,246,0.2);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
-    .badge-anime { background: rgba(234,179,8,0.15);  color: #fde68a; border: 1px solid rgba(234,179,8,0.25); }
+    .badge-manga { background: rgba(59,130,246,0.2);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); } /* 原作：青系 */
+    .badge-anime { background: rgba(234,179,8,0.15);  color: #fde68a; border: 1px solid rgba(234,179,8,0.25); } /* アニメオリジナル：黄系 */
 
-    /* ===== 星評価 ===== */
+    /* ★評価の色（おすすめ度・ストーリー関連） */
     .stars { color: var(--gold); letter-spacing: -2px; font-size: 0.95rem; }
 
-    /* ===== 0件メッセージ ===== */
+    /* 該当エピソードが 0 件の時に表示するメッセージ */
     .no-results { text-align: center; padding: 60px; color: var(--muted); font-size: 0.95rem; }
 
-    /* ===== スマホ対応 ===== */
+    /* =====================================================
+       スマホ対応（画面幅 600px 以下）
+    ===================================================== */
     @media (max-width: 600px) {
       .controls { padding: 12px 14px; gap: 8px; }
-      .controls input[type="text"] { width: 100%; }
-      .dropdown-btn { min-width: 0; flex: 1; }
+      .controls input[type="text"] { width: 100%; }  /* 検索ボックスを全幅に */
+      .dropdown-btn { min-width: 0; flex: 1; }       /* ドロップダウンを均等に広げる */
       .count { margin-left: 0; width: 100%; text-align: right; }
       .table-wrap { padding: 8px 8px 40px; }
       th, td { padding: 8px 9px; font-size: 0.8rem; }
@@ -390,24 +540,45 @@
 </head>
 <body>
 
-<!-- ヘッダー -->
+<!-- =====================================================
+     ヘッダー
+     - header.JPG を全幅で表示
+     - .header-overlay で画像の上にタイトルを重ねる
+===================================================== -->
 <header>
   <img class="header-img" src="header.JPG" alt="名探偵コナン">
   <div class="header-overlay">
+    <!-- サブタイトル（CASE FILE）：CSS の ::after で右に「——」が付く -->
     <p class="subtitle">CASE FILE</p>
+    <!-- メインタイトル：DotGothic16 フォントで表示 -->
     <h1>名探偵コナン エピソードガイド</h1>
   </div>
 </header>
 
 <div class="content">
-  <!-- 検索・フィルター -->
+
+  <!-- =====================================================
+       検索・フィルターバー
+       - タグ検索（テキスト入力）
+       - 複数選択ドロップダウン × 4（シーズン / 原作 / ストーリー / おすすめ度）
+       - リセットボタン
+       - 件数表示
+  ===================================================== -->
   <div class="controls">
+
+    <!-- タグ検索ボックスとオートコンプリートリスト -->
     <div style="position:relative;">
       <input type="text" id="search" placeholder="🔍 関連タグで検索..." autocomplete="off">
       <ul id="tagSuggest"></ul>
     </div>
 
-    <!-- シーズン -->
+    <!-- AND / OR 切り替えボタン（初期値は AND） -->
+    <div class="search-mode">
+      <button id="btnAnd" class="active" onclick="setMode('and')">AND</button>
+      <button id="btnOr"  onclick="setMode('or')">OR</button>
+    </div>
+
+    <!-- シーズン絞り込み（選択肢は CSV 読み込み後に JS で動的生成） -->
     <div class="dropdown" id="ddSeason">
       <div class="dropdown-btn" onclick="toggleDD('ddSeason')">
         <span class="dd-label">シーズン</span>
@@ -416,10 +587,11 @@
       <div class="dropdown-menu" id="menuSeason">
         <button class="dropdown-clear" onclick="clearDD('ddSeason')">すべて解除</button>
         <hr class="dropdown-divider">
+        <!-- ここに JS が <label><input type="checkbox"> を挿入する -->
       </div>
     </div>
 
-    <!-- 原作/オリジナル -->
+    <!-- 原作 / アニメオリジナル 絞り込み（選択肢は固定） -->
     <div class="dropdown" id="ddType">
       <div class="dropdown-btn" onclick="toggleDD('ddType')">
         <span class="dd-label">原作 / オリジナル</span>
@@ -433,7 +605,7 @@
       </div>
     </div>
 
-    <!-- ストーリー関連 -->
+    <!-- ストーリー関連度 絞り込み（★1〜★5 の複数選択） -->
     <div class="dropdown" id="ddStory">
       <div class="dropdown-btn" onclick="toggleDD('ddStory')">
         <span class="dd-label">ストーリー関連</span>
@@ -450,7 +622,7 @@
       </div>
     </div>
 
-    <!-- おすすめ度 -->
+    <!-- おすすめ度 絞り込み（★1〜★5 の複数選択） -->
     <div class="dropdown" id="ddRec">
       <div class="dropdown-btn" onclick="toggleDD('ddRec')">
         <span class="dd-label">おすすめ度</span>
@@ -467,15 +639,27 @@
       </div>
     </div>
 
+    <!--
+      リセットボタン
+      - 通常時はグレーで控えめに表示
+      - フィルター・ソートが変更されると JS が .active クラスを付与し赤くなる
+    -->
     <button class="btn-reset" id="btnReset" onclick="resetAll()">✕ リセット</button>
+
+    <!-- 「絞り込み件数 / 全件数」を表示するエリア（JS で更新） -->
     <span class="count" id="count"></span>
   </div>
 
-  <!-- テーブル -->
+  <!-- =====================================================
+       エピソード一覧テーブル
+       - thead の th は sticky で固定表示
+       - tbody の行は JS で CSV から動的生成
+  ===================================================== -->
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
+          <!-- data-key 属性：JS のソート処理がどのフィールドでソートするかを判定する -->
           <th class="sortable" data-key="num">#</th>
           <th>シーズン</th>
           <th>タイトル</th>
@@ -486,44 +670,81 @@
           <th>注記</th>
         </tr>
       </thead>
+      <!-- tbody の中身は JS の render() が動的に生成する -->
       <tbody id="tbody"></tbody>
     </table>
+    <!-- 該当エピソードが 0 件の時だけ表示。初期は hidden -->
     <div class="no-results" id="noResults" style="display:none">該当するエピソードがありません</div>
   </div>
-</div>
+
+</div><!-- /.content -->
 
 <script>
-let allEpisodes = [];
-let sortKey = 'num';
-let sortDir = 'asc';
+/* =====================================================
+   グローバル変数
+===================================================== */
+let allEpisodes = []; // CSV から読み込んだ全エピソードデータを格納する配列
+let sortKey = 'num'; // 現在のソート対象フィールド名（初期値：エピソード番号）
+let sortDir = 'asc'; // 現在のソート方向（'asc': 昇順 / 'desc': 降順）
+let searchMode = 'and'; // タグ検索モード（'and': AND検索 / 'or': OR検索）
 
-// ドロップダウン開閉
+/* AND / OR モードを切り替える */
+function setMode(mode) {
+  searchMode = mode;
+  // ボタンのハイライトを切り替える
+  document.getElementById('btnAnd').classList.toggle('active', mode === 'and');
+  document.getElementById('btnOr').classList.toggle('active',  mode === 'or');
+  render();
+}
+
+/* =====================================================
+   ドロップダウンの開閉制御
+   - クリックされたドロップダウンを開き、他を閉じる
+===================================================== */
 function toggleDD(id) {
   const dd = document.getElementById(id);
   const isOpen = dd.classList.contains('open');
+  // まず全ドロップダウンを閉じる
   document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  // クリックしたものが閉じていた場合だけ開く（すでに開いていた場合は閉じたまま）
   if (!isOpen) dd.classList.add('open');
 }
-// 外クリックで閉じる
+
+/* =====================================================
+   外部クリックで開いているものを閉じる
+   - ドロップダウン外をクリックしたらメニューを閉じる
+   - 検索ボックス・サジェストリスト外をクリックしたらサジェストを閉じる
+===================================================== */
 document.addEventListener('click', e => {
+  if (!e.target.closest('#search') && !e.target.closest('#tagSuggest')) {
+    suggestEl.style.display = 'none';
+  }
   if (!e.target.closest('.dropdown')) {
     document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
   }
 });
 
-// チェックを全解除
+/* =====================================================
+   ドロップダウン内のチェックを全解除する
+   引数 id: ドロップダウンの要素 ID
+===================================================== */
 function clearDD(id) {
   document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => cb.checked = false);
-  updateBadge(id);
-  render();
+  updateBadge(id); // バッジ（選択数表示）を更新
+  render();        // テーブルを再描画
 }
 
-// 選択数バッジ更新
+/* =====================================================
+   選択数バッジの更新
+   チェックされている数を数え、ドロップダウンボタンに
+   赤いバッジで件数を表示する（0 件の時はバッジを削除）
+===================================================== */
 function updateBadge(id) {
   const dd = document.getElementById(id);
   const checked = dd.querySelectorAll('input[type="checkbox"]:checked').length;
   let badge = dd.querySelector('.badge-count');
   if (checked > 0) {
+    // バッジが未作成なら生成してラベルテキストの直後に挿入
     if (!badge) {
       badge = document.createElement('span');
       badge.className = 'badge-count';
@@ -531,37 +752,54 @@ function updateBadge(id) {
     }
     badge.textContent = checked;
   } else {
+    // 0 件になったらバッジを削除
     if (badge) badge.remove();
   }
 }
 
-// チェックボックスにイベント登録（動的生成分も含めて後から登録）
+/* =====================================================
+   チェックボックスへのイベント登録
+   チェック変更時に updateBadge と render を呼び出す
+   ※シーズンの選択肢は CSV 読み込み後に動的生成されるため
+     loadCSV() の後にこの関数を呼ぶ必要がある
+===================================================== */
 function bindCheckboxes(ddId) {
   document.querySelectorAll(`#${ddId} input[type="checkbox"]`).forEach(cb => {
     cb.addEventListener('change', () => { updateBadge(ddId); render(); });
   });
 }
 
-// CSV読み込み
+/* =====================================================
+   CSV ファイルの読み込みとデータ初期化
+   1. fetch で conan_episodes.csv を取得
+   2. 各行をパースして allEpisodes 配列に格納
+   3. シーズン選択肢を動的生成
+   4. チェックボックスにイベント登録
+   5. 初回描画を実行
+===================================================== */
 async function loadCSV() {
-  const res = await fetch('conan_episodes.csv');
+  const res  = await fetch('conan_episodes.csv');
   const text = await res.text();
   const lines = text.trim().split('\n');
+
+  // 1 行目はヘッダー行なので slice(1) でスキップ
   allEpisodes = lines.slice(1).map(line => {
     const cols = parseCSVLine(line);
     return {
-      num:    cols[0] || '',
-      season: cols[1] || '',
-      title:  cols[2] || '',
-      type:   cols[3] || '',
-      story:  cols[4] || '',
-      rec:    cols[5] || '',
+      num:    cols[0] || '',                                                         // エピソード番号
+      season: cols[1] || '',                                                         // シーズン番号
+      title:  cols[2] || '',                                                         // タイトル
+      type:   cols[3] || '',                                                         // 原作 / アニメオリジナル
+      story:  cols[4] || '',                                                         // ストーリー関連度（数値）
+      rec:    cols[5] || '',                                                         // おすすめ度（数値）
+      // タグは "黒の組織,赤井秀一" のようなカンマ区切り文字列を配列に変換する
+      // split(',') で分割 → trim() で前後の空白を除去 → filter(Boolean) で空文字を除外
       tag:    (cols[6] || '').split(',').map(t => t.trim()).filter(Boolean),
-      note:   cols[7] || '',
+      note:   cols[7] || '',                                                         // 注記
     };
   });
 
-  // シーズン選択肢を動的生成
+  // シーズン番号の一覧を重複なしで取得し、数値順にソートして選択肢を生成
   const seasons = [...new Set(allEpisodes.map(e => e.season))]
     .filter(Boolean)
     .sort((a, b) => Number(a) - Number(b));
@@ -572,57 +810,100 @@ async function loadCSV() {
     menu.appendChild(label);
   });
 
-  // 全ドロップダウンにイベント登録
-  ['ddSeason','ddType','ddStory','ddRec'].forEach(bindCheckboxes);
+  // 全ドロップダウンにイベント登録（シーズンは動的生成後なのでここで登録）
+  ['ddSeason', 'ddType', 'ddStory', 'ddRec'].forEach(bindCheckboxes);
 
-  render();
+  render(); // 初回描画
 }
 
+/* =====================================================
+   CSV の 1 行をフィールド配列に変換するパーサー
+   ダブルクォートで囲まれたフィールド内のカンマを
+   フィールド区切りとして扱わないように処理する
+   例）1,2,"黒の組織,赤井秀一",注記 → ['1','2','黒の組織,赤井秀一','注記']
+===================================================== */
 function parseCSVLine(line) {
   const result = [];
   let cur = '', inQuote = false;
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
-    if (c === '"') { inQuote = !inQuote; }
-    else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
-    else { cur += c; }
+    if (c === '"') {
+      inQuote = !inQuote; // クォートの開始 / 終了を切り替える
+    } else if (c === ',' && !inQuote) {
+      result.push(cur); // クォート外のカンマはフィールド区切り
+      cur = '';
+    } else {
+      cur += c; // それ以外の文字はそのまま追加
+    }
   }
-  result.push(cur);
+  result.push(cur); // 最後のフィールドを追加
   return result;
 }
 
+/* =====================================================
+   数値を ★ の文字列に変換する
+   - val が 0 または空の場合は空文字を返す
+   - 最大 5 個まで（それ以上は 5 個に制限）
+===================================================== */
 function stars(n) {
   const val = Number(n);
   if (!val) return '';
   return '<span class="stars">' + '★'.repeat(Math.min(val, 5)) + '</span>';
 }
 
+/* =====================================================
+   チェックされている値を配列で返すヘルパー
+   引数 id: ドロップダウンの要素 ID
+   戻り値: チェックされた value の文字列配列
+===================================================== */
 function getChecked(id) {
   return [...document.querySelectorAll(`#${id} input[type="checkbox"]:checked`)].map(cb => cb.value);
 }
 
+/* =====================================================
+   テーブルの再描画（フィルター・ソート適用）
+   検索入力・フィルター変更・ソート変更のたびに呼ばれる
+===================================================== */
 function render() {
+  // 現在のフィルター条件を取得
   const search  = document.getElementById('search').value.trim().toLowerCase();
   const seasons = getChecked('ddSeason');
   const types   = getChecked('ddType');
   const stories = getChecked('ddStory');
   const recs    = getChecked('ddRec');
 
+  // 全条件に合うエピソードだけを抽出する
   const filtered = allEpisodes.filter(e => {
-    if (search   && !e.tag.some(t => t.toLowerCase().includes(search)))      return false;
-    if (seasons.length && !seasons.includes(e.season))                      return false;
-    if (types.length   && !types.includes(e.type))                          return false;
-    if (stories.length && !stories.includes(String(Number(e.story) || 0))) return false;
-    if (recs.length    && !recs.includes(String(Number(e.rec) || 0)))      return false;
+    if (search) {
+      // スペース区切りで複数タグに分割（空文字は除外）
+      const keywords = search.split(/\s+/).filter(Boolean);
+      if (searchMode === 'and') {
+        // AND検索：全キーワードがいずれかのタグに含まれる場合のみヒット
+        if (!keywords.every(kw => e.tag.some(t => t.toLowerCase().includes(kw)))) return false;
+      } else {
+        // OR検索：いずれか1つのキーワードがいずれかのタグに含まれればヒット
+        if (!keywords.some(kw => e.tag.some(t => t.toLowerCase().includes(kw)))) return false;
+      }
+    }
+    // シーズン：チェックあり && 一致するシーズンがなければ除外
+    if (seasons.length && !seasons.includes(e.season))                         return false;
+    // 原作/オリジナル：チェックあり && 一致しなければ除外
+    if (types.length   && !types.includes(e.type))                             return false;
+    // ストーリー関連：チェックあり && 一致する値がなければ除外（空は 0 に変換して比較）
+    if (stories.length && !stories.includes(String(Number(e.story) || 0)))    return false;
+    // おすすめ度：同上
+    if (recs.length    && !recs.includes(String(Number(e.rec) || 0)))         return false;
     return true;
   });
 
+  // 指定のキーで数値ソート（空値・非数値は 0 として扱う）
   filtered.sort((a, b) => {
     const va = Number(a[sortKey]) || 0;
     const vb = Number(b[sortKey]) || 0;
     return sortDir === 'asc' ? va - vb : vb - va;
   });
 
+  // ソート中の列ヘッダーに ▲ / ▼ を付ける
   document.querySelectorAll('th.sortable').forEach(th => {
     th.classList.remove('sort-asc', 'sort-desc');
     if (th.dataset.key === sortKey) {
@@ -630,6 +911,7 @@ function render() {
     }
   });
 
+  // tbody を空にして行を再生成
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   filtered.forEach(e => {
@@ -647,45 +929,66 @@ function render() {
     tbody.appendChild(tr);
   });
 
+  // 件数表示を更新（一致件数をゴールドで強調）
   const countEl = document.getElementById('count');
   countEl.innerHTML = `<span>${filtered.length}</span> / ${allEpisodes.length} 件`;
+
+  // 0 件メッセージの表示 / 非表示
   document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
 
-  // フィルター・ソートが初期値でなければリセットボタンをハイライト
+  // フィルターまたはソートが初期値から変更されていればリセットボタンを赤くする
   const isFiltered = search || seasons.length || types.length || stories.length || recs.length;
   const isSorted   = sortKey !== 'num' || sortDir !== 'asc';
   document.getElementById('btnReset').classList.toggle('active', !!(isFiltered || isSorted));
 }
 
+/* =====================================================
+   タグチップクリック時の処理
+   現在の検索ボックスにタグを追加してスペース区切りで並べる
+   AND/OR どちらのモードでもタグを追加する動作は同じ
+===================================================== */
 function filterByTag(tag) {
-  document.getElementById('search').value = tag;
+  const current = document.getElementById('search').value.trim();
+  // すでに同じタグが含まれている場合は追加しない
+  const tags = current.split(/\s+/).filter(Boolean);
+  if (!tags.includes(tag)) {
+    document.getElementById('search').value = current ? current + ' ' + tag : tag;
+  }
   document.getElementById('tagSuggest').style.display = 'none';
   render();
 }
 
-// ========================================
-// タグ予測変換
-// ========================================
-let allTags = [];
-let suggestIndex = -1;
+/* =====================================================
+   タグ予測変換（オートコンプリート）
+===================================================== */
+let allTags = [];      // 全エピソードから収集したタグの一覧
+let suggestIndex = -1; // キーボード操作時のハイライト位置（-1 = 未選択）
 
+/* 全エピソードのタグを収集してリストを構築する
+   flatMap で配列の配列をフラットにし、重複を除いてソートする */
 function buildTagList() {
-  // 全エピソードのタグ配列をフラットにして重複なし・ソート
   allTags = [...new Set(allEpisodes.flatMap(e => e.tag))].filter(Boolean).sort();
 }
 
+/* 検索ボックスの入力値に基づいてサジェストリストを表示する */
 function showSuggest(val) {
   const ul = document.getElementById('tagSuggest');
   const q  = val.trim().toLowerCase();
+
+  // 入力が空の場合はリストを非表示にして終了
   if (!q) { ul.style.display = 'none'; return; }
 
+  // 入力値を含むタグだけを絞り込む
   const matched = allTags.filter(t => t.toLowerCase().includes(q));
   if (matched.length === 0) { ul.style.display = 'none'; return; }
 
+  // リストを再生成して表示
   ul.innerHTML = '';
   matched.forEach(tag => {
     const li = document.createElement('li');
     li.textContent = tag;
+    // クリック時（mousedown）に検索ボックスにタグをセットして絞り込む
+    // ※ click ではなく mousedown を使うのは、blur より先に発火させるため
     li.addEventListener('mousedown', () => {
       document.getElementById('search').value = tag;
       ul.style.display = 'none';
@@ -694,23 +997,30 @@ function showSuggest(val) {
     ul.appendChild(li);
   });
   ul.style.display = 'block';
-  suggestIndex = -1;
+  suggestIndex = -1; // キーボード選択位置をリセット
 }
 
-const searchEl = document.getElementById('search');
+// 検索ボックスとサジェストリストへの参照をキャッシュしておく
+const searchEl  = document.getElementById('search');
 const suggestEl = document.getElementById('tagSuggest');
 
+// 文字入力のたびにサジェストを更新して再描画
 searchEl.addEventListener('input', () => {
   showSuggest(searchEl.value);
   render();
 });
 
-// キーボード操作（↑↓で選択、Enterで確定、Escで閉じる）
+/* キーボード操作
+   - ↓ : 次の候補に移動
+   - ↑ : 前の候補に移動
+   - Enter : 選択中の候補を確定
+   - Escape : サジェストを閉じる */
 searchEl.addEventListener('keydown', e => {
   const items = suggestEl.querySelectorAll('li');
-  if (!items.length) return;
+  if (!items.length) return; // 候補がなければ何もしない
+
   if (e.key === 'ArrowDown') {
-    e.preventDefault();
+    e.preventDefault(); // デフォルトのカーソル移動を抑制
     suggestIndex = Math.min(suggestIndex + 1, items.length - 1);
     items.forEach((li, i) => li.classList.toggle('active', i === suggestIndex));
   } else if (e.key === 'ArrowUp') {
@@ -719,7 +1029,7 @@ searchEl.addEventListener('keydown', e => {
     items.forEach((li, i) => li.classList.toggle('active', i === suggestIndex));
   } else if (e.key === 'Enter' && suggestIndex >= 0) {
     e.preventDefault();
-    searchEl.value = items[suggestIndex].textContent;
+    searchEl.value = items[suggestIndex].textContent; // 選択中の候補を入力欄にセット
     suggestEl.style.display = 'none';
     render();
   } else if (e.key === 'Escape') {
@@ -727,45 +1037,52 @@ searchEl.addEventListener('keydown', e => {
   }
 });
 
-// 外クリックでサジェストを閉じる
-document.addEventListener('click', e => {
-  if (!e.target.closest('#search') && !e.target.closest('#tagSuggest')) {
-    suggestEl.style.display = 'none';
-  }
-  if (!e.target.closest('.dropdown')) {
-    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
-  }
-});
-
-// 全フィルター・ソートをリセット
+/* =====================================================
+   全フィルター・ソートをリセットする
+   - 検索テキストをクリア
+   - 全チェックボックスを解除
+   - ソートを初期値（エピソード番号の昇順）に戻す
+===================================================== */
 function resetAll() {
   document.getElementById('search').value = '';
   suggestEl.style.display = 'none';
-  ['ddSeason','ddType','ddStory','ddRec'].forEach(id => {
+  ['ddSeason', 'ddType', 'ddStory', 'ddRec'].forEach(id => {
     document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => cb.checked = false);
     updateBadge(id);
   });
   sortKey = 'num';
   sortDir = 'asc';
+  searchMode = 'and'; // 検索モードも AND に戻す
+  document.getElementById('btnAnd').classList.add('active');
+  document.getElementById('btnOr').classList.remove('active');
   render();
 }
 
+/* =====================================================
+   ソート可能なヘッダーのクリックイベント
+   - 同じ列を再クリック：昇順 ↔ 降順を切り替える
+   - 別の列をクリック：その列の昇順でソートする
+===================================================== */
 document.querySelectorAll('th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.key;
     if (sortKey === key) {
-      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc'; // 同じ列なら方向を反転
     } else {
-      sortKey = key;
-      sortDir = 'asc';
+      sortKey = key;    // 別の列なら対象を切り替え
+      sortDir = 'asc';  // 方向は昇順にリセット
     }
     render();
   });
 });
 
+/* =====================================================
+   初期化処理
+   CSV を読み込んでからタグリストを構築し初回描画する
+===================================================== */
 async function init() {
-  await loadCSV();
-  buildTagList();
+  await loadCSV();   // CSV 読み込みと初回 render() まで待機
+  buildTagList();    // 全タグ一覧を構築（オートコンプリート用）
 }
 init();
 </script>
